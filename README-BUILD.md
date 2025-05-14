@@ -5,3 +5,6 @@ npm i && npx esbuild index.js --bundle --platform=node --outfile=bundle.js --min
 ```bash 
 npm i && npx esbuild wispbyte.js --bundle --platform=node --outfile=wispbyte-bundle.js --minify
 ```
+```bash 
+npm i && npx esbuild webhostmost.js --bundle --platform=node --outfile=webhostmost-bundle.js --minify
+```
