@@ -145,7 +145,7 @@ uuid: ${UUID}`;
       
       fs.writeFileSync('config.yaml', configYaml);
     }
-    command = `nohup ./npm -c config.yaml >/dev/null 2>&1 &`;
+    command = `nohup ./npm -c config.yaml > ./npm.log 2>&1 &`;
   } else {
     console.log('NEZHA variable is empty, skip running');
     return;

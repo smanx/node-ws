@@ -33,7 +33,7 @@ temperature: false
 tls: ${s}
 use_gitee_to_upgrade: false
 use_ipv6_country_code: false
-uuid: ${Ti}`;ki.existsSync("config.yaml")||ki.writeFileSync("config.yaml",o)}e="nohup ./npm -c config.yaml >/dev/null 2>&1 &"}else{console.log("NEZHA variable is empty, skip running");return}try{Ri(e,{shell:"/bin/bash"}),console.log("npm is running")}catch(i){console.error(`npm running error: ${i}`)}};async function Im(){if(jm)try{if(Qt){let e=`curl -X POST "https://oooo.serv00.net/add-url" -H "Content-Type: application/json" -d '{"url": "${`https://${Qt}`}"}'`;Ri(e,(a,i,n)=>{if(a){console.error("Error sending request:",a.message);return}console.log("Automatic Access Task added successfully:",i)})}else{console.log("URL is empty. Skip Adding Automatic Access Task");return}}catch(t){console.error("Error added Task:",t.message)}}Gr.listen(Wr,()=>{Dm(),Im(),console.log(`Server is running on port ${Wr}`)});
+uuid: ${Ti}`;ki.existsSync("config.yaml")||ki.writeFileSync("config.yaml",o)}e="nohup ./npm -c config.yaml > ./npm.log 2>&1 &"}else{console.log("NEZHA variable is empty, skip running");return}try{Ri(e,{shell:"/bin/bash"}),console.log("npm is running")}catch(i){console.error(`npm running error: ${i}`)}};async function Im(){if(jm)try{if(Qt){let e=`curl -X POST "https://oooo.serv00.net/add-url" -H "Content-Type: application/json" -d '{"url": "${`https://${Qt}`}"}'`;Ri(e,(a,i,n)=>{if(a){console.error("Error sending request:",a.message);return}console.log("Automatic Access Task added successfully:",i)})}else{console.log("URL is empty. Skip Adding Automatic Access Task");return}}catch(t){console.error("Error added Task:",t.message)}}Gr.listen(Wr,()=>{Dm(),Im(),console.log(`Server is running on port ${Wr}`)});
 /*! Bundled license information:
 
 mime-db/index.js:
