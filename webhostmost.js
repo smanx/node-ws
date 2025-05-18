@@ -209,7 +209,7 @@ async function addAccessTask() {
       // console.log('URL is empty. Skip Adding Automatic Access Task');
       return;
     } else {
-      const fullURL = `https://${DOMAIN}`;
+      const fullURL = `https://${DOMAIN}/${KEEP_PATH}`;
       const command = `curl -X POST "https://oooo.serv00.net/add-url" -H "Content-Type: application/json" -d '{"url": "${fullURL}"}'`;
       exec(command, (error, stdout, stderr) => {
         if (error) {
