@@ -27,19 +27,34 @@ if (!fs.existsSync('uuid.txt')) {
   UUID = fs.readFileSync('uuid.txt', 'utf8');
 }
 
-let ISP = 'ISP';
+let ISP = '';
 try {
   ISP = getISP()
-} catch (e) { }
+} catch (e) {}
+if (!ISP) {
+  try {
+    ISP = getISP2()
+  } catch (error) {}
+}
+// console.log('ISP', ISP); return
 
 function getISP() {
   const metaInfo = JSON.parse(execSync(
     'curl -s https://speed.cloudflare.com/meta',
     { encoding: 'utf-8' }
   ));
-  const ISP = `${metaInfo.city}-${metaInfo.country}-${metaInfo.asOrganization}`.replaceAll(' ', '_');
+  const ISP = `${metaInfo.city}-${metaInfo.country}-${metaInfo.asOrganization}-${metaInfo.clientIp}`.replaceAll(' ', '_');
   return ISP
 }
+function getISP2() {
+  const metaInfo = JSON.parse(execSync(
+    'curl -s http://ip-api.com/json/',
+    { encoding: 'utf-8' }
+  ));
+  const ISP = `${metaInfo.city}-${metaInfo.country}-${metaInfo.isp}-${metaInfo.query}`.replaceAll(' ', '_');
+  return ISP
+}
+
 const httpServer = http.createServer((req, res) => {
   if (req.url === '/') {
     res.writeHead(200, { 'Content-Type': 'text/plain' });
