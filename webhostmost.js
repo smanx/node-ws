@@ -6,22 +6,40 @@ const net = require('net');
 const { Buffer } = require('buffer');
 const { exec, execSync } = require('child_process');
 const { WebSocket, createWebSocketStream } = require('ws');
-const UUID = process.env.UUID || 'de04add9-5c68-6bab-950c-08cd5320df33'; // 运行哪吒v1,在不同的平台需要改UUID,否则会被覆盖
+const { v4: uuidv4 } = require('uuid');
+const UPLOAD_URL = process.env.UPLOAD_URL || 'https://merge.smanx.dpdns.org';      // 节点或订阅自动上传地址,需填写部署Merge-sub项目后的首页地址,例如：https://merge.serv00.net
+let UUID = process.env.UUID || uuidv4(); // 运行哪吒v1,在不同的平台需要改UUID,否则会被覆盖
+
 const NEZHA_SERVER = process.env.NEZHA_SERVER || 'nz1.smanx.dpdns.org:80';       // 哪吒v1填写形式：nz.abc.com:8008   哪吒v0填写形式：nz.abc.com
 const NEZHA_PORT = process.env.NEZHA_PORT || '';           // 哪吒v1没有此变量，v0的agent端口为{443,8443,2096,2087,2083,2053}其中之一时开启tls
 const NEZHA_KEY = process.env.NEZHA_KEY || 'rGRCD6bfowTP3J5mh29zK7EmxoaXUWb4';             // v1的NZ_CLIENT_SECRET或v0的agent端口                   
-const DOMAIN = process.env.DOMAIN || '';       // 填写项目域名或已反代的域名，不带前缀，建议填已反代的域名
+const DOMAIN = process.env.DOMAIN || 'DOMAIN.DOMAIN.DOMAIN';       // 填写项目域名或已反代的域名，不带前缀，建议填已反代的域名
 const AUTO_ACCESS = process.env.AUTO_ACCESS || true;      // 是否开启自动访问保活,false为关闭,true为开启,需同时填写DOMAIN变量
-const SUB_PATH = process.env.SUB_PATH || 'sub';            // 获取节点的订阅路径
+const SUB_PATH = process.env.SUB_PATH || 'auto';            // 获取节点的订阅路径
+const KEEP_PATH = process.env.SUB_PATH || 'keep';            // 保活路径
 const NAME = process.env.NAME || 'Vls';                    // 节点名称
 const PORT = process.env.PORT || 3000;                     // http和ws服务端口
 const ADRESS = process.env.ADRESS || '104.16.0.0';
 
-const metaInfo = execSync(
-  'curl -s https://speed.cloudflare.com/meta | awk -F\\" \'{print $26"-"$18}\' | sed -e \'s/ /_/g\'',
-  { encoding: 'utf-8' }
-);
-const ISP = metaInfo.trim();
+if (!fs.existsSync('uuid.txt')) {
+  fs.writeFileSync('uuid.txt', UUID);
+} else {
+  UUID = fs.readFileSync('uuid.txt', 'utf8');
+}
+
+let ISP = 'ISP';
+try {
+  ISP = getISP()
+} catch (e) { }
+
+function getISP() {
+  const metaInfo = JSON.parse(execSync(
+    'curl -s https://speed.cloudflare.com/meta',
+    { encoding: 'utf-8' }
+  ));
+  const ISP = `${metaInfo.city}-${metaInfo.country}-${metaInfo.asOrganization}`.replaceAll(' ', '_');
+  return ISP
+}
 const httpServer = http.createServer((req, res) => {
   if (req.url === '/') {
     res.writeHead(200, { 'Content-Type': 'text/plain' });
@@ -33,6 +51,9 @@ const httpServer = http.createServer((req, res) => {
 
     res.writeHead(200, { 'Content-Type': 'text/plain' });
     res.end(base64Content + '\n');
+  } else if (req.url === `/${KEEP_PATH}`) {
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.end('OK\n');
   } else {
     res.writeHead(404, { 'Content-Type': 'text/plain' });
     res.end('Not Found\n');
@@ -95,7 +116,7 @@ const downloadFile = async () => {
 
     return new Promise((resolve, reject) => {
       writer.on('finish', () => {
-        console.log('npm download successfully');
+        // console.log('npm download successfully');
         exec('chmod +x ./npm', (err) => {
           if (err) reject(err);
           resolve();
@@ -113,7 +134,7 @@ const runnz = async () => {
   let NEZHA_TLS = '';
   let command = '';
 
-  console.log(`NEZHA_SERVER: ${NEZHA_SERVER}`);
+  // console.log(`NEZHA_SERVER: ${NEZHA_SERVER}`);
 
 
   const checkNpmRunning = () => {
@@ -175,7 +196,7 @@ uuid: ${UUID}`;
     exec(command, {
       shell: '/bin/bash'
     });
-    console.log('npm is running');
+    // console.log('npm is running');
   } catch (error) {
     console.error(`npm running error: ${error}`);
   }
@@ -185,7 +206,7 @@ async function addAccessTask() {
   if (!AUTO_ACCESS) return;
   try {
     if (!DOMAIN) {
-      console.log('URL is empty. Skip Adding Automatic Access Task');
+      // console.log('URL is empty. Skip Adding Automatic Access Task');
       return;
     } else {
       const fullURL = `https://${DOMAIN}`;
@@ -195,7 +216,7 @@ async function addAccessTask() {
           console.error('Error sending request:', error.message);
           return;
         }
-        console.log('Automatic Access Task added successfully:', stdout);
+        // console.log('Automatic Access Task added successfully:', stdout);
       });
     }
   } catch (error) {
@@ -208,11 +229,66 @@ const delFiles = () => {
   fs.unlink('config.yaml', () => { });
 };
 
+// 自动上传节点或订阅
+async function uplodNodes() {
+  if (UPLOAD_URL) {
+    const subscriptionUrl = `https://${DOMAIN}/${SUB_PATH}`;
+    const jsonData = {
+      subscription: [subscriptionUrl]
+    };
+    try {
+      const response = await axios.post(`${UPLOAD_URL}/api/add-subscriptions`, jsonData, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.status === 200) {
+        console.log('Subscription uploaded successfully');
+      } else {
+        return null;
+        //  console.log('Unknown response status');
+      }
+    } catch (error) {
+      if (error.response) {
+        if (error.response.status === 400) {
+          //  console.error('Subscription already exists');
+        }
+      }
+    }
+  } else if (UPLOAD_URL) {
+    if (!fs.existsSync(listPath)) return;
+    const content = fs.readFileSync(listPath, 'utf-8');
+    const nodes = content.split('\n').filter(line => /(vless|vmess|trojan|hysteria2|tuic):\/\//.test(line));
+
+    if (nodes.length === 0) return;
+
+    const jsonData = JSON.stringify({ nodes });
+
+    try {
+      await axios.post(`${UPLOAD_URL}/api/add-nodes`, jsonData, {
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (response.status === 200) {
+        console.log('Subscription uploaded successfully');
+      } else {
+        return null;
+      }
+    } catch (error) {
+      return null;
+    }
+  } else {
+    // console.log('Skipping upload nodes');
+    return;
+  }
+}
+
 httpServer.listen(PORT, () => {
   runnz();
   // setTimeout(() => {
   //   delFiles();
   // }, 30000);
   addAccessTask();
+  uplodNodes();
   console.log(`Server is running on port ${PORT}`);
 });
