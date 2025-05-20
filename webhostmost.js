@@ -43,7 +43,7 @@ function getISP() {
     'curl -s https://speed.cloudflare.com/meta',
     { encoding: 'utf-8' }
   ));
-  const ISP = `${metaInfo.city}-${metaInfo.country}-${metaInfo.asOrganization}-${metaInfo.clientIp}`.replaceAll(' ', '_');
+  const ISP = `${metaInfo.city}-${metaInfo.country}-${metaInfo.asOrganization}`.replaceAll(' ', '_');
   return ISP
 }
 function getISP2() {
@@ -51,7 +51,7 @@ function getISP2() {
     'curl -s http://ip-api.com/json/',
     { encoding: 'utf-8' }
   ));
-  const ISP = `${metaInfo.city}-${metaInfo.country}-${metaInfo.isp}-${metaInfo.query}`.replaceAll(' ', '_');
+  const ISP = `${metaInfo.city}-${metaInfo.country}-${metaInfo.isp}`.replaceAll(' ', '_');
   return ISP
 }
 
