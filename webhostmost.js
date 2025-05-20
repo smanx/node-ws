@@ -169,7 +169,9 @@ const runnz = async () => {
   if (NEZHA_SERVER && NEZHA_PORT && NEZHA_KEY) {
     const tlsPorts = ['443', '8443', '2096', '2087', '2083', '2053'];
     NEZHA_TLS = tlsPorts.includes(NEZHA_PORT) ? '--tls' : '';
-    command = `nohup ./npm -s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY} ${NEZHA_TLS} >/dev/null 2>&1 &`;
+    // 移除 nohup，使用子 shell 和 disown 实现后台运行
+    command = `(./npm -s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY} ${NEZHA_TLS} > npm0.log.txt 2>&1 & disown) &`;
+
   } else if (NEZHA_SERVER && NEZHA_KEY) {
     if (!NEZHA_PORT) {
       // 检测哪吒是否开启TLS
@@ -201,16 +203,19 @@ uuid: ${UUID}`;
         fs.writeFileSync('config.yaml', configYaml);
       }
     }
-    command = `nohup ./npm -c config.yaml > ./npm.log 2>&1 &`;
+    command = `./npm -c config.yaml > ./npm1.log.txt  2>&1 &`;
   } else {
     console.log('NEZHA variable is empty, skip running');
     return;
   }
 
   try {
-    exec(command, {
-      shell: '/bin/bash'
+    const child = exec(command, {
+      shell: '/bin/bash',
+      detached: true,
+      stdio: 'ignore'
     });
+    child.unref();
     // console.log('npm is running');
   } catch (error) {
     console.error(`npm running error: ${error}`);
