@@ -64,7 +64,9 @@ async function buildAndObfuscate() {
 
         // 7. 生成构建时间戳文件
         console.log('Step 5: Generating timestamp file...');
-        const timestamp = new Date().toLocaleString('zh-CN', {
+        const now = new Date();
+        const formatter = new Intl.DateTimeFormat('zh-CN', {
+            timeZone: 'Asia/Shanghai',
             year: 'numeric',
             month: '2-digit',
             day: '2-digit',
@@ -72,7 +74,10 @@ async function buildAndObfuscate() {
             minute: '2-digit',
             second: '2-digit',
             hour12: false
-        }).replace(/\//g, '-').replace(/:/g, '-').replace(/\s/g, '-');
+        });
+        
+        const parts = formatter.formatToParts(now);
+        const timestamp = `${parts.find(p => p.type === 'year').value}-${parts.find(p => p.type === 'month').value}-${parts.find(p => p.type === 'day').value} ${parts.find(p => p.type === 'hour').value}:${parts.find(p => p.type === 'minute').value}:${parts.find(p => p.type === 'second').value}`;
         
         // 确保dist目录存在
         if (!fs.existsSync('dist')) {
