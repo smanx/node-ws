@@ -1,5 +1,5 @@
 # 工作流名称，将显示在 GitHub Actions 页面上
-name: 手动构建并推送 Docker 镜像
+name: 手动构建并推送多架构 Docker 镜像
 
 on:
   # 当手动触发时，允许用户输入参数
@@ -8,7 +8,7 @@ on:
       branch:
         description: '要构建和检出的分支名'
         required: true
-        default: 'hug' 
+        default: 'earth@smanx-earth.hf.space' 
         type: string
       image_name:
         description: '要构建和推送的 Docker 镜像名称 (例如: my-app)'
@@ -18,11 +18,11 @@ on:
       image_tag:
         description: 'Docker 镜像的标签 (例如: latest, v1.0.0)'
         required: true
-        default: 'latest'
+        default: 'smanx-earth.hf.space'
         type: string
 
 jobs:
-  build-and-push: # Job 名称也可以取得更清晰
+  build-and-push:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -36,7 +36,15 @@ jobs:
           # 直接使用手动触发时输入的分支名
           ref: ${{ github.event.inputs.branch }}
 
-      # 第二步：登录到 GitHub Container Registry
+      # 新增：设置 QEMU 以支持多平台构建
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      # 第三步：设置 Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # 第四步：登录到 GitHub Container Registry
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -44,17 +52,14 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # 第三步：设置 Docker Buildx
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      # 第四步：构建并推送到 GHCR
-      - name: Build and push Docker image
+      # 第五步：构建并推送到 GHCR
+      - name: Build and push multi-platform Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          # 直接使用手动触发时输入的镜像名和标签来构建最终的 tag
+          # 新增：指定要构建的平台
+          platforms: linux/amd64,linux/arm64
           tags: ghcr.io/${{ github.repository_owner }}/${{ github.event.inputs.image_name }}:${{ github.event.inputs.image_tag }}
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
