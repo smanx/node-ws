@@ -8,10 +8,10 @@ WORKDIR /app
 COPY package*.json ./
 
 # 安装依赖
-RUN npm ci --only=production && npm cache clean --force
+RUN npm ci && npm cache clean --force
 
 # 复制源代码
-COPY index.js index.html ./
+COPY index.js index.html build.js ./
 
 # 构建应用
 RUN npm run build
@@ -22,7 +22,7 @@ FROM node:20-alpine3.20
 WORKDIR /app
 
 # 复制构建产物和必要文件
-COPY --from=builder /app/dist/bundle.js ./bundle.js
+COPY --from=builder /app/dist/bundle.obfuscated.js ./index.js
 COPY --from=builder /app/index.html ./index.html
 
 # 安装必要的系统工具
@@ -31,4 +31,4 @@ COPY --from=builder /app/index.html ./index.html
 EXPOSE 7860
 
 # 运行应用
-CMD ["node", "bundle.js"]
+CMD ["node", "index.js"]
