@@ -8,7 +8,7 @@ on:
       branch:
         description: '要构建和检出的分支名'
         required: true
-        default: 'earth@smanx-earth.hf.space' 
+        default: 'earth' 
         type: string
       image_name:
         description: '要构建和推送的 Docker 镜像名称 (例如: my-app)'
@@ -18,7 +18,7 @@ on:
       image_tag:
         description: 'Docker 镜像的标签 (例如: latest, v1.0.0)'
         required: true
-        default: 'smanx-earth.hf.space'
+        default: 'latest'
         type: string
 
 jobs:
