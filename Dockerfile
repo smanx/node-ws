@@ -22,8 +22,7 @@ FROM node:20-alpine3.20
 WORKDIR /app
 
 # 复制构建产物和必要文件
-COPY --from=builder /app/dist/bundle.obfuscated.js ./index.js
-COPY --from=builder /app/index.html ./index.html
+COPY --from=builder /app/dist/* ./
 
 # 安装必要的系统工具
 # RUN apk update && apk add --no-cache bash openssl curl
@@ -31,4 +30,4 @@ COPY --from=builder /app/index.html ./index.html
 EXPOSE 7860
 
 # 运行应用
-CMD ["node", "index.js"]
+CMD ["node", "bundle.obfuscated.js"]

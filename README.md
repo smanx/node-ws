@@ -51,6 +51,12 @@ function getRandomArray(array) {
   return array[randomIndex];
 }
 ```
+```
+ docker build -t node-ws-optimized .
+```
+```
+docker run --rm -p 7860:7860  node-ws-optimized
+```
 
 ## 开源协议说明（基于GPL）
 

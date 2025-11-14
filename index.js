@@ -51,6 +51,17 @@ const httpServer = http.createServer((req, res) => {
     const base64Content = Buffer.from(subscription).toString('base64');
     res.writeHead(200, { 'Content-Type': 'text/plain' });
     res.end(base64Content + '\n');
+  } else if (req.url === '/time') {
+    const buildTimePath = path.join(__dirname, 'build-time.txt');
+    fs.readFile(buildTimePath, 'utf8', (err, content) => {
+      if (err) {
+        res.writeHead(404, { 'Content-Type': 'text/plain' });
+        res.end('Build time file not found\n');
+        return;
+      }
+      res.writeHead(200, { 'Content-Type': 'text/plain' });
+      res.end(content);
+    });
   } else {
     res.writeHead(404, { 'Content-Type': 'text/plain' });
     res.end('Not Found\n');

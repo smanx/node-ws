@@ -62,6 +62,34 @@ async function buildAndObfuscate() {
         // 6. （可选）删除临时文件
         fs.unlinkSync(tempFile);
 
+        // 7. 生成构建时间戳文件
+        console.log('Step 5: Generating timestamp file...');
+        const timestamp = new Date().toLocaleString('zh-CN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        }).replace(/\//g, '-').replace(/:/g, '-').replace(/\s/g, '-');
+        
+        // 确保dist目录存在
+        if (!fs.existsSync('dist')) {
+            fs.mkdirSync('dist');
+        }
+        
+        const timestampFile = 'dist/build-time.txt';
+        fs.writeFileSync(timestampFile, timestamp);
+        console.log(`Timestamp file generated at ${timestampFile} with content: ${timestamp}`);
+
+        // 把index.html复制到dist目录
+        console.log('Step 6: Copying index.html to dist directory...');
+        fs.copyFileSync('index.html', 'dist/index.html');
+        console.log('index.html copied to dist directory.');
+
+        console.log('Build and obfuscation process completed successfully!');
+
     } catch (error) {
         console.error('Build process failed:', error);
         process.exit(1);
